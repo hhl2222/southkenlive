@@ -1,0 +1,8 @@
+{
+  "name": "south-ken-live",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "London temperature + live South Kensington tube departures",
+  "engines": { "node": ">=18" }
+}

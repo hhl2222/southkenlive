@@ -65,6 +65,18 @@
   @keyframes blink { to { visibility: hidden; } }
   .empty { padding: 18px 16px; color: var(--muted); font-size: 14px; }
 
+  .ask { margin-top: 16px; }
+  .ask form { display: flex; gap: 8px; }
+  .ask input { flex: 1; min-width: 0; background: var(--panel-2); border: 1px solid var(--line); color: var(--text);
+    border-radius: 10px; padding: 12px 14px; font: inherit; font-size: 15px; }
+  .ask input:focus { outline: 2px solid var(--amber); outline-offset: -1px; }
+  .ask button { background: var(--amber); color: #111; border: 0; border-radius: 10px; padding: 0 18px;
+    font: inherit; font-weight: 700; cursor: pointer; }
+  .ask button:disabled { opacity: .5; cursor: default; }
+  .chips { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 10px; }
+  .chips button { background: var(--panel-2); color: var(--muted); border: 1px solid var(--line); border-radius: 999px;
+    padding: 6px 12px; font: inherit; font-size: 13px; cursor: pointer; }
+  .answer { margin-top: 12px; line-height: 1.5; white-space: pre-wrap; }
   footer { margin-top: 24px; color: var(--muted); font-size: 12px; display: flex; justify-content: space-between; flex-wrap: wrap; gap: 8px; }
   footer a { color: var(--muted); }
   .err { color: var(--bad); }
@@ -92,6 +104,20 @@
   </div>
 
   <div class="boards" id="boards"><div class="card sub">Loading trains…</div></div>
+
+  <section class="card ask">
+    <div class="label">Ask about your journey</div>
+    <form id="askForm">
+      <input id="askInput" maxlength="500" placeholder="e.g. Do I need an umbrella? When's the next train to Heathrow?" autocomplete="off" />
+      <button id="askBtn" type="submit">Ask</button>
+    </form>
+    <div class="chips">
+      <button type="button">Next train to Heathrow?</button>
+      <button type="button">Do I need a coat?</button>
+      <button type="button">Any delays right now?</button>
+    </div>
+    <div class="answer" id="answer"></div>
+  </section>
 
   <footer>
     <div id="updated">—</div>
@@ -192,6 +218,23 @@ function renderBoards() {
     return `<div class="board"><h3>${esc(plat ? dir : p)}<span>${esc(plat || "")}</span></h3>${rows}</div>`;
   }).join("");
 }
+
+async function ask(q) {
+  const btn = document.getElementById("askBtn"), out = document.getElementById("answer");
+  if (!q.trim()) return;
+  btn.disabled = true; out.className = "answer sub"; out.textContent = "Thinking…";
+  try {
+    const r = await fetch("/api/chat", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ question: q }) });
+    const d = await r.json();
+    if (d.error) throw new Error(d.error);
+    out.className = "answer"; out.textContent = d.answer;
+  } catch (e) { out.className = "answer err"; out.textContent = "Couldn't get an answer: " + e.message; }
+  btn.disabled = false;
+}
+document.getElementById("askForm").addEventListener("submit", (e) => { e.preventDefault(); ask(document.getElementById("askInput").value); });
+document.querySelectorAll(".chips button").forEach((b) => b.addEventListener("click", () => {
+  document.getElementById("askInput").value = b.textContent; ask(b.textContent);
+}));
 
 loadWeather(); loadTrains();
 setInterval(loadTrains, 20000);

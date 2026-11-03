@@ -1,1 +1,201 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>South Ken Live</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet" />
+<style>
+  :root {
+    --bg: #0e0f12;
+    --panel: #17191e;
+    --panel-2: #1e2127;
+    --line: #2a2e36;
+    --text: #e9ebef;
+    --muted: #8b919c;
+    --amber: #ffb000;
+    --district: #00782a;
+    --circle: #ffd300;
+    --piccadilly: #1c3f94;
+    --good: #3ecf8e;
+    --warn: #ffb000;
+    --bad: #ff5c5c;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; background: var(--bg); color: var(--text);
+    font-family: Inter, system-ui, sans-serif; -webkit-font-smoothing: antialiased;
+  }
+  .wrap { max-width: 1040px; margin: 0 auto; padding: 28px 16px 48px; }
+  header { display: flex; justify-content: space-between; align-items: flex-end; gap: 16px; flex-wrap: wrap; margin-bottom: 22px; }
+  h1 { margin: 0; font-size: clamp(26px, 5vw, 40px); letter-spacing: -0.02em; }
+  .sub { color: var(--muted); font-size: 14px; margin-top: 4px; }
+  .clock { font-family: "JetBrains Mono", monospace; font-size: clamp(22px, 4vw, 32px); color: var(--amber); }
 
+  .top { display: grid; grid-template-columns: minmax(260px, 1fr) 2fr; gap: 16px; margin-bottom: 16px; }
+  @media (max-width: 760px) { .top { grid-template-columns: 1fr; } }
+  .card { background: var(--panel); border: 1px solid var(--line); border-radius: 14px; padding: 18px; }
+  .label { font-size: 12px; text-transform: uppercase; letter-spacing: .08em; color: var(--muted); margin-bottom: 10px; }
+
+  .temp { display: flex; align-items: center; gap: 14px; }
+  .temp .big { font-size: 56px; font-weight: 700; letter-spacing: -0.03em; line-height: 1; }
+  .temp .icon { font-size: 44px; }
+  .wx-desc { margin-top: 6px; font-weight: 500; }
+  .wx-meta { color: var(--muted); font-size: 13px; margin-top: 8px; display: flex; gap: 14px; flex-wrap: wrap; }
+
+  .status { display: grid; gap: 8px; }
+  .status-row { display: flex; align-items: center; gap: 10px; background: var(--panel-2); border-radius: 10px; padding: 10px 12px; }
+  .bar { width: 6px; align-self: stretch; border-radius: 3px; flex: none; }
+  .status-row .name { font-weight: 700; min-width: 90px; }
+  .status-row .st { font-size: 14px; }
+  .status-row details { color: var(--muted); font-size: 13px; }
+  .good { color: var(--good); } .warn { color: var(--warn); } .bad { color: var(--bad); }
+
+  .boards { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 16px; }
+  .board { background: #050506; border: 1px solid var(--line); border-radius: 14px; overflow: hidden; }
+  .board h3 { margin: 0; padding: 12px 16px; font-size: 14px; background: var(--panel); border-bottom: 1px solid var(--line); display: flex; justify-content: space-between; }
+  .board h3 span { color: var(--muted); font-weight: 500; }
+  .train { display: grid; grid-template-columns: 6px 1fr auto; gap: 12px; padding: 12px 16px; border-bottom: 1px solid #16181c; align-items: center; }
+  .train:last-child { border-bottom: 0; }
+  .dest { font-family: "JetBrains Mono", monospace; color: var(--amber); font-weight: 700; font-size: 15px; }
+  .loc { color: var(--muted); font-size: 12px; margin-top: 3px; }
+  .mins { font-family: "JetBrains Mono", monospace; color: var(--amber); font-weight: 700; font-size: 18px; text-align: right; white-space: nowrap; }
+  .mins.due { animation: blink 1s steps(2, start) infinite; }
+  @keyframes blink { to { visibility: hidden; } }
+  .empty { padding: 18px 16px; color: var(--muted); font-size: 14px; }
+
+  footer { margin-top: 24px; color: var(--muted); font-size: 12px; display: flex; justify-content: space-between; flex-wrap: wrap; gap: 8px; }
+  footer a { color: var(--muted); }
+  .err { color: var(--bad); }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div>
+      <h1>South Kensington</h1>
+      <div class="sub">District · Circle · Piccadilly — live departures</div>
+    </div>
+    <div class="clock" id="clock">--:--:--</div>
+  </header>
+
+  <div class="top">
+    <section class="card">
+      <div class="label">London now</div>
+      <div id="weather"><div class="sub">Loading weather…</div></div>
+    </section>
+    <section class="card">
+      <div class="label">Line status</div>
+      <div class="status" id="status"><div class="sub">Loading…</div></div>
+    </section>
+  </div>
+
+  <div class="boards" id="boards"><div class="card sub">Loading trains…</div></div>
+
+  <footer>
+    <div id="updated">—</div>
+    <div>Data: <a href="https://tfl.gov.uk/info-for/open-data-users/" target="_blank" rel="noopener">TfL Open Data</a> · <a href="https://open-meteo.com" target="_blank" rel="noopener">Open-Meteo</a></div>
+  </footer>
+</div>
+
+<script>
+const LINE_COLORS = { district: "var(--district)", circle: "var(--circle)", piccadilly: "var(--piccadilly)" };
+const WX = {
+  0:["Clear sky","☀️","🌙"],1:["Mainly clear","🌤️","🌙"],2:["Partly cloudy","⛅","☁️"],3:["Overcast","☁️","☁️"],
+  45:["Fog","🌫️"],48:["Freezing fog","🌫️"],51:["Light drizzle","🌦️"],53:["Drizzle","🌦️"],55:["Heavy drizzle","🌧️"],
+  56:["Freezing drizzle","🌧️"],57:["Freezing drizzle","🌧️"],61:["Light rain","🌦️"],63:["Rain","🌧️"],65:["Heavy rain","🌧️"],
+  66:["Freezing rain","🌧️"],67:["Freezing rain","🌧️"],71:["Light snow","🌨️"],73:["Snow","🌨️"],75:["Heavy snow","❄️"],
+  77:["Snow grains","🌨️"],80:["Light showers","🌦️"],81:["Showers","🌧️"],82:["Violent showers","⛈️"],
+  85:["Snow showers","🌨️"],86:["Heavy snow showers","❄️"],95:["Thunderstorm","⛈️"],96:["Thunderstorm, hail","⛈️"],99:["Thunderstorm, hail","⛈️"]
+};
+const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;" }[c]));
+const fmtTime = (d) => d.toLocaleTimeString("en-GB", { timeZone: "Europe/London" });
+
+let trains = [];
+
+// Clock + live countdown
+setInterval(() => { document.getElementById("clock").textContent = fmtTime(new Date()); renderBoards(); }, 1000);
+
+async function loadWeather() {
+  const el = document.getElementById("weather");
+  try {
+    const w = await (await fetch("/api/weather")).json();
+    if (w.error) throw new Error(w.error);
+    const [desc, dayIcon, nightIcon] = WX[w.code] || ["—", "🌡️"];
+    const icon = !w.isDay && nightIcon ? nightIcon : dayIcon;
+    el.innerHTML = `
+      <div class="temp"><div class="big">${Math.round(w.temperature)}°C</div><div class="icon">${icon}</div></div>
+      <div class="wx-desc">${esc(desc)}</div>
+      <div class="wx-meta">
+        <span>Feels ${Math.round(w.feelsLike)}°</span>
+        ${w.high != null ? `<span>H ${Math.round(w.high)}° · L ${Math.round(w.low)}°</span>` : ""}
+        <span>Wind ${Math.round(w.wind)} km/h</span>
+        <span>Humidity ${w.humidity}%</span>
+      </div>`;
+  } catch (e) { el.innerHTML = `<div class="err">Weather unavailable (${esc(e.message)})</div>`; }
+}
+
+async function loadTrains() {
+  try {
+    const d = await (await fetch("/api/arrivals")).json();
+    if (d.error) throw new Error(d.error);
+    // Store absolute arrival time so the countdown ticks between refreshes
+    const now = Date.now();
+    trains = d.trains.map((t) => ({ ...t, at: t.expected ? Date.parse(t.expected) : now + t.seconds * 1000 }));
+    renderStatus(d.status);
+    document.getElementById("updated").textContent = `Trains updated ${fmtTime(new Date(d.updated))} · refreshes every 20s`;
+    renderBoards();
+  } catch (e) {
+    document.getElementById("boards").innerHTML = `<div class="card err">Train data unavailable (${esc(e.message)})</div>`;
+  }
+}
+
+function renderStatus(list) {
+  const el = document.getElementById("status");
+  if (!list || !list.length) { el.innerHTML = `<div class="sub">Status unavailable</div>`; return; }
+  el.innerHTML = list.map((l) => {
+    const cls = l.severity >= 10 ? "good" : l.severity >= 6 ? "warn" : "bad";
+    return `<div class="status-row">
+      <div class="bar" style="background:${LINE_COLORS[l.line] || "#888"}"></div>
+      <div class="name">${esc(l.name)}</div>
+      <div style="flex:1"><div class="st ${cls}">${esc(l.status)}</div>
+      ${l.reason ? `<details><summary>Details</summary>${esc(l.reason)}</details>` : ""}</div>
+    </div>`;
+  }).join("");
+}
+
+function renderBoards() {
+  const el = document.getElementById("boards");
+  if (!trains.length) return;
+  const now = Date.now();
+  const live = trains.filter((t) => t.at - now > -30000);
+  if (!live.length) { el.innerHTML = `<div class="card sub">No trains currently predicted — the station may be closed.</div>`; return; }
+
+  const groups = {};
+  for (const t of live) (groups[t.platform] ||= []).push(t);
+  const names = Object.keys(groups).sort((a, b) => a.localeCompare(b, "en", { numeric: true }));
+
+  el.innerHTML = names.map((p) => {
+    const rows = groups[p].sort((a, b) => a.at - b.at).slice(0, 4).map((t) => {
+      const s = Math.max(0, Math.round((t.at - now) / 1000));
+      const m = Math.floor(s / 60);
+      const label = s < 30 ? "Due" : m < 1 ? "<1 min" : `${m} min`;
+      return `<div class="train">
+        <div class="bar" style="background:${LINE_COLORS[t.line] || "#888"}"></div>
+        <div><div class="dest">${esc(t.destination)}</div>
+          <div class="loc">${esc(t.lineName)}${t.currentLocation ? " · " + esc(t.currentLocation) : ""}</div></div>
+        <div class="mins ${s < 30 ? "due" : ""}">${label}</div>
+      </div>`;
+    }).join("");
+    const [dir, plat] = p.split(" - ");
+    return `<div class="board"><h3>${esc(plat ? dir : p)}<span>${esc(plat || "")}</span></h3>${rows}</div>`;
+  }).join("");
+}
+
+loadWeather(); loadTrains();
+setInterval(loadTrains, 20000);
+setInterval(loadWeather, 5 * 60 * 1000);
+</script>
+</body>
+</html>
